@@ -1,13 +1,14 @@
 const express = require('express');
 const BorrowerController = require('../controllers/borrowersController');
+const { borrowerValidationRules, validate } = require('../middlewares/validateInput');
 
 const router = express.Router();
 
-router.post('/', BorrowerController.addBorrower);
+router.post('/', borrowerValidationRules.add, validate, BorrowerController.addBorrower);
 
-router.put('/:id', BorrowerController.updateBorrower);
+router.put('/:id', borrowerValidationRules.update, validate, BorrowerController.updateBorrower);
 
-router.delete('/:id', BorrowerController.deleteBorrower);
+router.delete('/:id', borrowerValidationRules.delete, validate, BorrowerController.deleteBorrower);
 
 router.get('/', BorrowerController.listBorrowers);
 
