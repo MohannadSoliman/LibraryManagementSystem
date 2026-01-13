@@ -69,7 +69,7 @@ const BookController = {
         const books = await Book.findAll();
         booksCache = books; // cache full list
       }
-      res.json({ success: true, books: booksCache, cached: true });
+      res.json({ success: true, books: booksCache });
     } catch (err) {
       err.message = `Listing books failed: ${err.message}`;
       next(err);
@@ -83,7 +83,7 @@ const BookController = {
       const key = query?.trim().toLowerCase() || 'all';
 
       if (searchCache[key]) {
-        return res.json({ success: true, books: searchCache[key], cached: true });
+        return res.json({ success: true, books: searchCache[key] });
       }
 
       const books = await Book.findAll({
@@ -99,7 +99,7 @@ const BookController = {
       // Cache this search
       searchCache[key] = books;
 
-      res.json({ success: true, books, cached: false });
+      res.json({ success: true, books });
     } catch (err) {
       err.message = `Book search failed: ${err.message}`;
       next(err);
