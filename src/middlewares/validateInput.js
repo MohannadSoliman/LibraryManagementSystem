@@ -88,6 +88,35 @@ const borrowingValidationRules = {
   ],
 };
 
+const reportsValidationRules = {
+  borrowingReport: [
+    query('startDate')
+      .optional()
+      .isISO8601()
+      .withMessage('startDate must be a valid date (YYYY-MM-DD)'),
+    query('endDate')
+      .optional()
+      .isISO8601()
+      .withMessage('endDate must be a valid date (YYYY-MM-DD)'),
+    query('exportFormat')
+      .optional()
+      .isIn(['csv', 'xlsx'])
+      .withMessage('exportFormat must be either "csv" or "xlsx"'),
+  ],
+  overdueLastMonth: [
+    query('exportFormat')
+      .optional()
+      .isIn(['csv', 'xlsx'])
+      .withMessage('exportFormat must be either "csv" or "xlsx"'),
+  ],
+  borrowingLastMonth: [
+    query('exportFormat')
+      .optional()
+      .isIn(['csv', 'xlsx'])
+      .withMessage('exportFormat must be either "csv" or "xlsx"'),
+  ],
+};
+
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -96,4 +125,4 @@ const validate = (req, res, next) => {
   next();
 };
 
-module.exports = { bookValidationRules, borrowerValidationRules, borrowingValidationRules, validate };
+module.exports = { bookValidationRules, borrowerValidationRules, borrowingValidationRules, reportsValidationRules, validate };

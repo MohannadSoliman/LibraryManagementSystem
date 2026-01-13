@@ -22,8 +22,11 @@
   "homepage": "https://github.com/MohannadSoliman/LibraryManagementSystem#readme",
   "dependencies": {
     "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
+    "json2csv": "^6.0.0-alpha.2",
     "mysql2": "^3.16.0",
     "sequelize": "^6.37.7"
   },
