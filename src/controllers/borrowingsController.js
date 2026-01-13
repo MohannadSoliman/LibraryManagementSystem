@@ -1,14 +1,20 @@
 const Borrowing = require('../models/borrowing');
 const Book = require('../models/book');
 const Borrower = require('../models/borrower');
+const BookController = require('./booksController');
 const { Op } = require('sequelize');
+
+const cache = {
+  borrowedBooks: {}, // { borrowerId: [...books] }
+  overdueBooks: null 
+};
 
 const BorrowingController = {
 
   // Check out books
   async checkoutBooks(req, res, next) {
     try {
-        const { borrowerId, books } = req.body; // books: [{bookId, dueDate}, ...]
+        const { borrowerId, books } = req.body;
 
         const borrower = await Borrower.findByPk(borrowerId);
         if (!borrower) return res.status(404).json({ success: false, error: 'Borrower not found' });
@@ -38,6 +44,11 @@ const BorrowingController = {
             results.push({ bookId, success: true });
         }
 
+        // Invalidate caches
+        cache.borrowedBooks[borrowerId] = null;
+        cache.overdueBooks = null;
+        BookController.invalidateCache(); // invalidate book caches
+
         res.json({ success: true, results });
     } catch (err) {
         err.message = `Bulk checkout failed: ${err.message}`;
@@ -48,7 +59,7 @@ const BorrowingController = {
   // Return multiple books
   async returnBooks(req, res, next) {
     try {
-        const { borrowingIds } = req.body; // [1, 2, 3, ...]
+        const { borrowingIds } = req.body;
 
         if (!Array.isArray(borrowingIds) || borrowingIds.length === 0) {
             return res.status(400).json({ success: false, error: 'No borrowing IDs provided' });
@@ -71,6 +82,13 @@ const BorrowingController = {
             }
 
             results.push({ id, success: true });
+
+            // Invalidate cache for this borrower
+            if (cache.borrowedBooks[borrowing.borrower_id]) {
+              cache.borrowedBooks[borrowing.borrower_id] = null;
+            }
+            cache.overdueBooks = null;
+            BookController.invalidateCache(); // invalidate book caches
         }
 
         res.json({ success: true, results });
@@ -80,30 +98,40 @@ const BorrowingController = {
     }
   },
 
-  // List current books borrowed by a borrower
+  // List current books borrowed by a borrower (cached)
   async listBorrowedBooks(req, res, next) {
     try {
       const { borrowerId } = req.params;
-      const borrowedBooks = await Borrowing.findAll({
-        where: { borrower_id: borrowerId, returned_date: null },
-        include: [Book],
-      });
-      res.json({ success: true, borrowedBooks });
+
+      if (!cache.borrowedBooks[borrowerId]) {
+        const borrowedBooks = await Borrowing.findAll({
+          where: { borrower_id: borrowerId, returned_date: null },
+          include: [Book],
+        });
+        cache.borrowedBooks[borrowerId] = borrowedBooks;
+      }
+
+      res.json({ success: true, borrowedBooks: cache.borrowedBooks[borrowerId] });
     } catch (err) {
       err.message = `Listing borrowed books failed: ${err.message}`;
       next(err);
     }
   },
 
-  // List overdue books
+  // List overdue books (cached)
   async listOverdue(req, res, next) {
     try {
       const today = new Date();
-      const overdueBooks = await Borrowing.findAll({
-        where: { due_date: { [Op.lt]: today }, returned_date: null },
-        include: [Book, Borrower],
-      });
-      res.json({ success: true, overdueBooks });
+
+      if (!cache.overdueBooks) {
+        const overdueBooks = await Borrowing.findAll({
+          where: { due_date: { [Op.lt]: today }, returned_date: null },
+          include: [Book, Borrower],
+        });
+        cache.overdueBooks = overdueBooks;
+      }
+
+      res.json({ success: true, overdueBooks: cache.overdueBooks });
     } catch (err) {
       err.message = `Listing overdue books failed: ${err.message}`;
       next(err);
