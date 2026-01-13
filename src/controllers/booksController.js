@@ -15,7 +15,7 @@ const BookController = {
     }
   },
 
-  // Update a book
+  // Update a bookbooks
   async updateBook(req, res, next) {
     try {
       const { id } = req.params;
@@ -63,7 +63,6 @@ const BookController = {
       const { query } = req.query;
       const books = await Book.findAll({
         where: {
-          // Sequelize OR conditions
           [Op.or]: [
             { title: { [Op.like]: `%${query}%` } },
             { author: { [Op.like]: `%${query}%` } },

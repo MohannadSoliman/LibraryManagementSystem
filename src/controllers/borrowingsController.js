@@ -5,49 +5,78 @@ const { Op } = require('sequelize');
 
 const BorrowingController = {
 
-  // Check out a book
-  async checkoutBook(req, res, next) {
+  // Check out books
+  async checkoutBooks(req, res, next) {
     try {
-      const { bookId, borrowerId, dueDate } = req.body;
+        const { borrowerId, books } = req.body; // books: [{bookId, dueDate}, ...]
 
-      const book = await Book.findByPk(bookId);
-      if (!book) return res.status(404).json({ success: false, error: 'Book not found' });
+        const borrower = await Borrower.findByPk(borrowerId);
+        if (!borrower) return res.status(404).json({ success: false, error: 'Borrower not found' });
 
-      const borrower = await Borrower.findByPk(borrowerId);
-      if (!borrower) return res.status(404).json({ success: false, error: 'Borrower not found' });
+        const results = [];
 
-      if (book.available_quantity <= 0) {
-        return res.status(400).json({ success: false, error: 'Book is not available' });
-      }
+        for (const { bookId, dueDate } of books) {
+            const book = await Book.findByPk(bookId);
+            if (!book) {
+                results.push({ bookId, success: false, error: 'Book not found' });
+                continue;
+            }
 
-      await Borrowing.create({ book_id: bookId, borrower_id: borrowerId, due_date: dueDate });
-      await book.decrement('available_quantity', { by: 1 });
+            if (book.available_quantity <= 0) {
+                results.push({ bookId, success: false, error: 'Book not available' });
+                continue;
+            }
 
-      res.json({ success: true });
+            await Borrowing.create({
+                book_id: bookId,
+                borrower_id: borrowerId,
+                borrowed_date: new Date(),
+                due_date: dueDate
+            });
+
+            await book.decrement('available_quantity', { by: 1 });
+            results.push({ bookId, success: true });
+        }
+
+        res.json({ success: true, results });
     } catch (err) {
-      err.message = `Book checkout failed: ${err.message}`;
-      next(err);
+        err.message = `Bulk checkout failed: ${err.message}`;
+        next(err);
     }
   },
 
-  // Return a book
-  async returnBook(req, res, next) {
+  // Return multiple books
+  async returnBooks(req, res, next) {
     try {
-      const { bookId, borrowerId } = req.body;
-      const borrowing = await Borrowing.findOne({ where: { book_id: bookId, borrower_id: borrowerId, returned: false } });
+        const { borrowingIds } = req.body; // [1, 2, 3, ...]
 
-      if (!borrowing) return res.status(404).json({ success: false, error: 'Borrowing record not found' });
+        if (!Array.isArray(borrowingIds) || borrowingIds.length === 0) {
+            return res.status(400).json({ success: false, error: 'No borrowing IDs provided' });
+        }
 
-      borrowing.returned = true;
-      await borrowing.save();
+        const results = [];
 
-      const book = await Book.findByPk(bookId);
-      await book.increment('available_quantity', { by: 1 });
+        for (const id of borrowingIds) {
+            const borrowing = await Borrowing.findByPk(id, { include: [Book] });
+            if (!borrowing || borrowing.returned_date) {
+                results.push({ id, success: false, error: 'Borrowing record not found or already returned' });
+                continue;
+            }
 
-      res.json({ success: true });
+            borrowing.returned_date = new Date();
+            await borrowing.save();
+
+            if (borrowing.Book) {
+                await borrowing.Book.increment('available_quantity', { by: 1 });
+            }
+
+            results.push({ id, success: true });
+        }
+
+        res.json({ success: true, results });
     } catch (err) {
-      err.message = `Book return failed: ${err.message}`;
-      next(err);
+        err.message = `Bulk return failed: ${err.message}`;
+        next(err);
     }
   },
 
@@ -56,7 +85,7 @@ const BorrowingController = {
     try {
       const { borrowerId } = req.params;
       const borrowedBooks = await Borrowing.findAll({
-        where: { borrower_id: borrowerId, returned: false },
+        where: { borrower_id: borrowerId, returned_date: null },
         include: [Book],
       });
       res.json({ success: true, borrowedBooks });
@@ -71,7 +100,7 @@ const BorrowingController = {
     try {
       const today = new Date();
       const overdueBooks = await Borrowing.findAll({
-        where: { due_date: { [Op.lt]: today }, returned: false },
+        where: { due_date: { [Op.lt]: today }, returned_date: null },
         include: [Book, Borrower],
       });
       res.json({ success: true, overdueBooks });
