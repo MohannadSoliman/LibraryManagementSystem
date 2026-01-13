@@ -4,8 +4,10 @@ const borrowerRoutes = require('./routes/borrowers');
 const borrowingRoutes = require('./routes/borrowings');
 const reportsRouter = require('./routes/reports');
 const errorHandler = require('./middlewares/errorHandler');
+const auth = require('./middlewares/auth')
 const app = express();
 
+app.use(auth);
 app.use(express.json());
 
 app.use('/books', bookRoutes);
