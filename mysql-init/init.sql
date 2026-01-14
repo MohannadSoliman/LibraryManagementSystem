@@ -24,7 +24,9 @@ CREATE TABLE borrowings (
   due_date DATE NOT NULL,
   returned_date DATE,
   FOREIGN KEY (book_id) REFERENCES books(id),
-  FOREIGN KEY (borrower_id) REFERENCES borrowers(id)
+  FOREIGN KEY (borrower_id) REFERENCES borrowers(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_books_title ON books(title);
