@@ -52,5 +52,13 @@ A Node.js API to manage library operations, including books, borrowers, borrowin
     ```
 4. Access the API at http://localhost:3000
 
+## What's next?
+1. Adding bulk queries for adding borrowing entries instead of hitting the database per entry.
+
+2. Adding pagination for responses to avoid sending an overwhelming response.
+
+3. Using more robust caching instead of basic in-memory caching, as the current assumption is that the data we’re dealing with isn’t too large.
+
+
 ## Documentation
 Full API documentation and database schema can be found in the `Documentation` folder.

@@ -131,7 +131,6 @@ describe('BooksController', () => {
     );
   });
 
-  // Fixed searchBooks test: no direct cache access
   test('searchBooks - success with results', async () => {
     const req = { query: { query: 'Book' } };
     const res1 = mockRes();
@@ -165,5 +164,4 @@ describe('BooksController', () => {
       })
     );
   });
-
 });
