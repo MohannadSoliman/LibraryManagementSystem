@@ -1,6 +1,6 @@
 # Library Management System
 
-A professional Node.js API to manage library operations, including books, borrowers, borrowings, and reporting. Fully Dockerized for quick setup and testing.
+A Node.js API to manage library operations, including books, borrowers, borrowings, and reporting. Fully Dockerized for quick setup and testing.
 
 ## Features
 - Manage books and borrowers
@@ -8,6 +8,29 @@ A professional Node.js API to manage library operations, including books, borrow
 - Track overdue books automatically
 - Export reports (CSV/XLSX)
 - In-memory caching for faster API responses
+
+## Technologies Used
+
+**Runtime & Frameworks**
+- Node.js – JavaScript runtime  
+- Express – Web framework for building APIs  
+
+**Database & ORM**
+- MySQL – Relational database  
+- Sequelize – ORM for database management  
+
+**API Middleware & Utilities**
+- basic-auth – HTTP Basic Authentication  
+- dotenv – Environment variable management  
+- express-rate-limit – Rate limiting for APIs  
+- express-validator – Request validation and sanitization  
+- exceljs – Export data to Excel files  
+- json2csv – Export data to CSV files  
+
+**Development & Testing**
+- nodemon – Auto-restart server during development  
+- jest – Unit and integration testing  
+
 
 ## Prerequisites
 - Node.js v18+
@@ -20,7 +43,7 @@ A professional Node.js API to manage library operations, including books, borrow
    ```bash
    git clone https://github.com/MohannadSoliman/LibraryManagementSystem.git
    ```
-2. Create a .env file in the project root like the on in `Documentation` folder.
+2. Create a .env file in the project root like the one mentioned in the PDF file in `Documentation/AppSetup/` folder.
 
 3. Run with Docker Compose:
 
