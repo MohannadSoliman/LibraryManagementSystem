@@ -10,6 +10,7 @@ const Book = sequelize.define('Book', {
 }, {
   tableName: 'books',
   timestamps: true,
+  underscored: true
 });
 
 module.exports = Book;

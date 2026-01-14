@@ -10,6 +10,7 @@ const Borrowing = sequelize.define('Borrowing', {
 }, {
   tableName: 'borrowings',
   timestamps: true,
+  underscored: true
 });
 
 // Relationships

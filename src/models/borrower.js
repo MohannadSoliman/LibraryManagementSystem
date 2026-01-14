@@ -8,6 +8,7 @@ const Borrower = sequelize.define('Borrower', {
 }, {
   tableName: 'borrowers',
   timestamps: true,
+  underscored: true
 });
 
 module.exports = Borrower;
